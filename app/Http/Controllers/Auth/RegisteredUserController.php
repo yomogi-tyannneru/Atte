@@ -33,22 +33,34 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request)
     {
+        // バリデーション
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
-
+        // ユーザーの新規登録の処理
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
         ]);
-
+        // データーベースに入れてる
         event(new Registered($user));
-
+        // $userをログイン
         Auth::login($user);
 
         return redirect(RouteServiceProvider::HOME);
+    }
+    public function guestLogin()
+    {
+        $email = 'haruto.matsuda@gmail.com';
+        $password = 'satoukazuki';
+
+        if (Auth::attempt(['email' => $email, 'password' => $password])) {
+            return redirect()->route('index');
+        }
+
+        return redirect('/');
     }
 }
